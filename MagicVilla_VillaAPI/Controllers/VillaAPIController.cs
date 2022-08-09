@@ -75,7 +75,7 @@ namespace MagicVilla_VillaAPI.Controllers
                 ImageUrl = villaDTO.ImageUrl,
                 Rate = villaDTO.Rate,
                 Occupancy = villaDTO.Occupancy,
-                CreatedDate = DateTime.Now
+                CreatedDate = DateTime.Now,
             };
 
             _db.Villas.Add(villa);
@@ -147,6 +147,10 @@ namespace MagicVilla_VillaAPI.Controllers
             }
 
             var villa = _db.Villas.FirstOrDefault(v => v.Id == id);
+            if (villa is null)
+            {
+                return NotFound();
+            }
 
             var villaDTO = new VillaDTO
             {
@@ -158,13 +162,11 @@ namespace MagicVilla_VillaAPI.Controllers
                 Rate = villa.Rate,
                 Occupancy = villa.Occupancy,
             };
-
-            if (villa is null)
-            {
-                return NotFound();
-            }
-
             patchVillaDTO.ApplyTo(villaDTO, ModelState);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
 
             var partialUpdatedVilla = new Villa
             {
@@ -180,11 +182,6 @@ namespace MagicVilla_VillaAPI.Controllers
 
             _db.Villas.Update(partialUpdatedVilla);
             _db.SaveChanges();
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
 
             return NoContent();
         }
