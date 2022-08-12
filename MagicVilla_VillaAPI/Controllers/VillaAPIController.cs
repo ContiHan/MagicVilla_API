@@ -45,6 +45,84 @@ namespace MagicVilla_VillaAPI.Controllers
             return Ok(villa);
         }
 
+        [HttpGet("occupancy/{occupancy:int}", Name = nameof(GetVillasByOccupancy))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<VillaDTO> GetVillasByOccupancy(int occupancy)
+        {
+            if (occupancy <= 0)
+            {
+                return BadRequest();
+            }
+
+            var villasByOccupancy = new List<VillaDTO>();
+            var villasFromDb = _db.Villas.ToList();
+            foreach (var villa in villasFromDb)
+            {
+                if (villa.Occupancy == occupancy)
+                {
+                    villasByOccupancy.Add(new VillaDTO
+                    {
+                        Id = villa.Id,
+                        Area = villa.Area,
+                        Amenity = villa.Amenity,
+                        Details = villa.Details,
+                        Name = villa.Name,
+                        ImageUrl = villa.ImageUrl,
+                        Rate = villa.Rate,
+                        Occupancy = villa.Occupancy
+                    });
+                }
+            }
+
+            if (villasByOccupancy is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(villasByOccupancy);
+        }
+
+        [HttpGet("occupancy/{occupancy:int}/area/{area:int}", Name = nameof(GetVillasByOccupancyAndArea))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<VillaDTO> GetVillasByOccupancyAndArea(int occupancy, int area)
+        {
+            if (occupancy <= 0 && area <= 0)
+            {
+                return BadRequest();
+            }
+
+            var villasByOccupancyAndArea = new List<VillaDTO>();
+            var villasFromDb = _db.Villas.ToList();
+            foreach (var villa in villasFromDb)
+            {
+                if (villa.Occupancy == occupancy && villa.Area == area)
+                {
+                    villasByOccupancyAndArea.Add(new VillaDTO
+                    {
+                        Id = villa.Id,
+                        Area = villa.Area,
+                        Amenity = villa.Amenity,
+                        Details = villa.Details,
+                        Name = villa.Name,
+                        ImageUrl = villa.ImageUrl,
+                        Rate = villa.Rate,
+                        Occupancy = villa.Occupancy
+                    });
+                }
+            }
+
+            if (villasByOccupancyAndArea is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(villasByOccupancyAndArea);
+        }
+
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
