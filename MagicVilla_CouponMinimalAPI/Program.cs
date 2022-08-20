@@ -14,9 +14,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapGet("/helloworldget", () =>
+app.MapGet("/helloworldget/{id:int}", (int id) =>
 {
-    return Results.BadRequest("Not allowed");
+    return Results.Ok("World with id: " + id);
 });
 
 app.MapPost("/helloworldpost", () =>
