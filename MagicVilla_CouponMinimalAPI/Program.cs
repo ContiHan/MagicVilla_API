@@ -1,4 +1,6 @@
 using MagicVilla_CouponMinimalAPI.Data;
+using MagicVilla_CouponMinimalAPI.Models;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +42,39 @@ app.MapGet("/api/coupon/{id:int}", (int id) =>
     }
 
     return Results.Ok(coupon);
+})
+    .WithName("GetCoupon");
+
+app.MapPost("/api/coupon", ([FromBody] Coupon coupon) =>
+{
+    if (coupon.Id != 0 || string.IsNullOrEmpty(coupon.Name))
+    {
+        return Results.BadRequest("Invalid Id or Coupon Name");
+    }
+
+    if (CouponStore.couponList is null)
+    {
+        return Results.NotFound("Coupon store not found");
+    }
+
+    if (CouponStore.couponList.FirstOrDefault(c => c.Name.ToLower() == coupon.Name.ToLower()) is not null)
+    {
+        return Results.BadRequest("Coupon Name already exists");
+    }
+
+    if (CouponStore.couponList.Any())
+    {
+        coupon.Id = CouponStore.couponList.OrderByDescending(c => c.Id).FirstOrDefault().Id + 1;
+    }
+    else
+    {
+        coupon.Id = 1;
+    }
+    coupon.Created = coupon.LastUpdate = DateTime.Now;
+
+    CouponStore.couponList.Add(coupon);
+
+    return Results.CreatedAtRoute("GetCoupon", new { coupon.Id }, coupon);
 });
 
 app.UseHttpsRedirection();
