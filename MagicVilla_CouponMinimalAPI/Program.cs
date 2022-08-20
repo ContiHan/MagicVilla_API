@@ -18,7 +18,28 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/api/coupons", () =>
 {
-    return Results.Ok(CouponStore.couponList);
+    return CouponStore.couponList.Any() ? Results.Ok(CouponStore.couponList) : Results.NotFound("Empty coupon store");
+});
+
+app.MapGet("/api/coupon/{id:int}", (int id) =>
+{
+    if (CouponStore.couponList is null || !CouponStore.couponList.Any())
+    {
+        return Results.NotFound("Empty coupon store");
+    }
+
+    if (id == 0)
+    {
+        return Results.BadRequest("Id cannot be zero");
+    }
+
+    var coupon = CouponStore.couponList.FirstOrDefault(c => c.Id == id);
+    if (coupon is null)
+    {
+        return Results.NotFound("Id not exists");
+    }
+
+    return Results.Ok(coupon);
 });
 
 app.UseHttpsRedirection();
