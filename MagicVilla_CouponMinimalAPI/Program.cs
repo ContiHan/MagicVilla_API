@@ -1,5 +1,6 @@
 using MagicVilla_CouponMinimalAPI.Data;
 using MagicVilla_CouponMinimalAPI.Models;
+using MagicVilla_CouponMinimalAPI.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,7 +27,7 @@ app.MapGet("/api/coupons", (ILogger<Program> _logger) =>
     .WithName("GetCoupons")
     .Produces<IEnumerable<Coupon>>(StatusCodes.Status200OK);
 
-app.MapGet("/api/coupon/{id:int}", (ILogger < Program > _logger, int id) =>
+app.MapGet("/api/coupon/{id:int}", (ILogger<Program> _logger, int id) =>
 {
     if (CouponStore.couponList is null || !CouponStore.couponList.Any())
     {
@@ -53,11 +54,11 @@ app.MapGet("/api/coupon/{id:int}", (ILogger < Program > _logger, int id) =>
     .Produces(StatusCodes.Status400BadRequest)
     .Produces(StatusCodes.Status404NotFound);
 
-app.MapPost("/api/coupon", ([FromBody] Coupon coupon) =>
+app.MapPost("/api/coupon", ([FromBody] CouponCreateDTO couponCreateDTO) =>
 {
-    if (coupon.Id != 0 || string.IsNullOrEmpty(coupon.Name))
+    if (string.IsNullOrEmpty(couponCreateDTO.Name))
     {
-        return Results.BadRequest("Invalid Id or Coupon Name");
+        return Results.BadRequest("Invalid Coupon Name");
     }
 
     if (CouponStore.couponList is null)
@@ -65,11 +66,19 @@ app.MapPost("/api/coupon", ([FromBody] Coupon coupon) =>
         return Results.NotFound("Coupon store not found");
     }
 
-    if (CouponStore.couponList.FirstOrDefault(c => c.Name.ToLower() == coupon.Name.ToLower()) is not null)
+    if (CouponStore.couponList.FirstOrDefault(c => c.Name.ToLower() == couponCreateDTO.Name.ToLower()) is not null)
     {
         return Results.BadRequest("Coupon Name already exists");
     }
 
+    var coupon = new Coupon
+    {
+        Name = couponCreateDTO.Name,
+        Percent = couponCreateDTO.Percent,
+        IsActive = couponCreateDTO.IsActive,
+        Created = DateTime.Now,
+        LastUpdate = DateTime.Now
+    };
     if (CouponStore.couponList.Any())
     {
         coupon.Id = CouponStore.couponList.OrderByDescending(c => c.Id).FirstOrDefault().Id + 1;
@@ -78,15 +87,24 @@ app.MapPost("/api/coupon", ([FromBody] Coupon coupon) =>
     {
         coupon.Id = 1;
     }
-    coupon.Created = coupon.LastUpdate = DateTime.Now;
-
     CouponStore.couponList.Add(coupon);
 
-    return Results.CreatedAtRoute("GetCoupon", new { coupon.Id }, coupon);
+    var couponDTO = new CouponDTO
+    {
+        Id = coupon.Id,
+        Name = coupon.Name,
+        Percent = coupon.Percent,
+        IsActive = coupon.IsActive,
+        Created = coupon.Created
+    };
+
+
+    return Results.CreatedAtRoute("GetCoupon", new { coupon.Id }, couponDTO);
 })
     .WithName("CreateCoupon")
-    .Produces<Coupon>(StatusCodes.Status201Created)
-    .Produces<string>(StatusCodes.Status400BadRequest)
+    .Accepts<CouponCreateDTO>("application/json")
+    .Produces<CouponDTO>(StatusCodes.Status201Created)
+    .Produces(StatusCodes.Status400BadRequest)
     .Produces(StatusCodes.Status404NotFound);
 
 app.MapPut("/api/coupon/{id:int}", (int id, [FromBody] Coupon coupon) =>
