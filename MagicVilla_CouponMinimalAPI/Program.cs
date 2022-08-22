@@ -77,5 +77,22 @@ app.MapPost("/api/coupon", ([FromBody] Coupon coupon) =>
     return Results.CreatedAtRoute("GetCoupon", new { coupon.Id }, coupon);
 });
 
+app.MapPut("/api/coupon/{id:int}", (int id, [FromBody] Coupon coupon) =>
+{
+    return Results.NoContent();
+});
+
+app.MapDelete("/api/coupon/{id:int}", (int id) =>
+{
+    var coupon = CouponStore.couponList.FirstOrDefault(c => c.Id == id);
+    if (coupon is null)
+    {
+        return Results.NotFound("Coupon not exists");
+    }
+
+    CouponStore.couponList.Remove(coupon);
+    return Results.NoContent();
+});
+
 app.UseHttpsRedirection();
 app.Run();
