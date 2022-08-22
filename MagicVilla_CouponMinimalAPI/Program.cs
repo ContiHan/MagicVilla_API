@@ -23,7 +23,7 @@ app.MapGet("/api/coupons", () =>
     return CouponStore.couponList.Any() ? Results.Ok(CouponStore.couponList) : Results.NotFound("Empty coupon store");
 })
     .WithName("GetCoupons")
-    .Produces(StatusCodes.Status200OK);
+    .Produces<IEnumerable<Coupon>>(StatusCodes.Status200OK);
 
 app.MapGet("/api/coupon/{id:int}", (int id) =>
 {
@@ -46,7 +46,7 @@ app.MapGet("/api/coupon/{id:int}", (int id) =>
     return Results.Ok(coupon);
 })
     .WithName("GetCoupon")
-    .Produces(StatusCodes.Status200OK)
+    .Produces<Coupon>(StatusCodes.Status200OK)
     .Produces(StatusCodes.Status400BadRequest)
     .Produces(StatusCodes.Status404NotFound);
 
@@ -82,8 +82,8 @@ app.MapPost("/api/coupon", ([FromBody] Coupon coupon) =>
     return Results.CreatedAtRoute("GetCoupon", new { coupon.Id }, coupon);
 })
     .WithName("CreateCoupon")
-    .Produces(StatusCodes.Status201Created)
-    .Produces(StatusCodes.Status400BadRequest)
+    .Produces<Coupon>(StatusCodes.Status201Created)
+    .Produces<string>(StatusCodes.Status400BadRequest)
     .Produces(StatusCodes.Status404NotFound);
 
 app.MapPut("/api/coupon/{id:int}", (int id, [FromBody] Coupon coupon) =>
