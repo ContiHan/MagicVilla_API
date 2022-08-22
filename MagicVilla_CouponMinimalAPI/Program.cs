@@ -21,7 +21,8 @@ if (app.Environment.IsDevelopment())
 app.MapGet("/api/coupons", () =>
 {
     return CouponStore.couponList.Any() ? Results.Ok(CouponStore.couponList) : Results.NotFound("Empty coupon store");
-});
+})
+    .WithName("GetCoupons");
 
 app.MapGet("/api/coupon/{id:int}", (int id) =>
 {
@@ -75,7 +76,8 @@ app.MapPost("/api/coupon", ([FromBody] Coupon coupon) =>
     CouponStore.couponList.Add(coupon);
 
     return Results.CreatedAtRoute("GetCoupon", new { coupon.Id }, coupon);
-});
+})
+    .WithName("CreateCoupon");
 
 app.MapPut("/api/coupon/{id:int}", (int id, [FromBody] Coupon coupon) =>
 {
@@ -96,7 +98,8 @@ app.MapPut("/api/coupon/{id:int}", (int id, [FromBody] Coupon coupon) =>
     couponFromStore.LastUpdate = DateTime.Now;
 
     return Results.NoContent();
-});
+})
+    .WithName("UpdateCoupon");
 
 app.MapDelete("/api/coupon/{id:int}", (int id) =>
 {
@@ -108,7 +111,8 @@ app.MapDelete("/api/coupon/{id:int}", (int id) =>
 
     CouponStore.couponList.Remove(coupon);
     return Results.NoContent();
-});
+})
+    .WithName("DeleteCoupon");
 
 app.UseHttpsRedirection();
 app.Run();
