@@ -22,7 +22,8 @@ app.MapGet("/api/coupons", () =>
 {
     return CouponStore.couponList.Any() ? Results.Ok(CouponStore.couponList) : Results.NotFound("Empty coupon store");
 })
-    .WithName("GetCoupons");
+    .WithName("GetCoupons")
+    .Produces(StatusCodes.Status200OK);
 
 app.MapGet("/api/coupon/{id:int}", (int id) =>
 {
@@ -44,7 +45,10 @@ app.MapGet("/api/coupon/{id:int}", (int id) =>
 
     return Results.Ok(coupon);
 })
-    .WithName("GetCoupon");
+    .WithName("GetCoupon")
+    .Produces(StatusCodes.Status200OK)
+    .Produces(StatusCodes.Status400BadRequest)
+    .Produces(StatusCodes.Status404NotFound);
 
 app.MapPost("/api/coupon", ([FromBody] Coupon coupon) =>
 {
@@ -77,7 +81,10 @@ app.MapPost("/api/coupon", ([FromBody] Coupon coupon) =>
 
     return Results.CreatedAtRoute("GetCoupon", new { coupon.Id }, coupon);
 })
-    .WithName("CreateCoupon");
+    .WithName("CreateCoupon")
+    .Produces(StatusCodes.Status201Created)
+    .Produces(StatusCodes.Status400BadRequest)
+    .Produces(StatusCodes.Status404NotFound);
 
 app.MapPut("/api/coupon/{id:int}", (int id, [FromBody] Coupon coupon) =>
 {
@@ -99,7 +106,10 @@ app.MapPut("/api/coupon/{id:int}", (int id, [FromBody] Coupon coupon) =>
 
     return Results.NoContent();
 })
-    .WithName("UpdateCoupon");
+    .WithName("UpdateCoupon")
+    .Produces(StatusCodes.Status204NoContent)
+    .Produces(StatusCodes.Status400BadRequest)
+    .Produces(StatusCodes.Status404NotFound);
 
 app.MapDelete("/api/coupon/{id:int}", (int id) =>
 {
@@ -112,7 +122,9 @@ app.MapDelete("/api/coupon/{id:int}", (int id) =>
     CouponStore.couponList.Remove(coupon);
     return Results.NoContent();
 })
-    .WithName("DeleteCoupon");
+    .WithName("DeleteCoupon")
+    .Produces(StatusCodes.Status204NoContent)
+    .Produces(StatusCodes.Status404NotFound);
 
 app.UseHttpsRedirection();
 app.Run();
