@@ -79,6 +79,22 @@ app.MapPost("/api/coupon", ([FromBody] Coupon coupon) =>
 
 app.MapPut("/api/coupon/{id:int}", (int id, [FromBody] Coupon coupon) =>
 {
+    if (id != coupon.Id)
+    {
+        return Results.BadRequest("Ids do not match");
+    }
+
+    var couponFromStore = CouponStore.couponList.FirstOrDefault(c => c.Id == id);
+    if (couponFromStore is null)
+    {
+        return Results.NotFound("Coupon not exists");
+    }
+
+    couponFromStore.Name = coupon.Name;
+    couponFromStore.Percent = coupon.Percent;
+    couponFromStore.IsActive = coupon.IsActive;
+    couponFromStore.LastUpdate = DateTime.Now;
+
     return Results.NoContent();
 });
 
