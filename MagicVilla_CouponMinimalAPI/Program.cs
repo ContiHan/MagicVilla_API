@@ -18,14 +18,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapGet("/api/coupons", () =>
+app.MapGet("/api/coupons", (ILogger<Program> _logger) =>
 {
+    _logger.Log(LogLevel.Information, "Getting all coupons");
     return CouponStore.couponList.Any() ? Results.Ok(CouponStore.couponList) : Results.NotFound("Empty coupon store");
 })
     .WithName("GetCoupons")
     .Produces<IEnumerable<Coupon>>(StatusCodes.Status200OK);
 
-app.MapGet("/api/coupon/{id:int}", (int id) =>
+app.MapGet("/api/coupon/{id:int}", (ILogger < Program > _logger, int id) =>
 {
     if (CouponStore.couponList is null || !CouponStore.couponList.Any())
     {
@@ -34,6 +35,7 @@ app.MapGet("/api/coupon/{id:int}", (int id) =>
 
     if (id == 0)
     {
+        _logger.Log(LogLevel.Error, $"Id is zero");
         return Results.BadRequest("Id cannot be zero");
     }
 
@@ -43,6 +45,7 @@ app.MapGet("/api/coupon/{id:int}", (int id) =>
         return Results.NotFound("Id not exists");
     }
 
+    _logger.Log(LogLevel.Information, $"Getting coupon with id: {coupon.Id} and name: {coupon.Name}");
     return Results.Ok(coupon);
 })
     .WithName("GetCoupon")
