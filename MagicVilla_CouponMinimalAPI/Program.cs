@@ -1,3 +1,5 @@
+using AutoMapper;
+using MagicVilla_CouponMinimalAPI;
 using MagicVilla_CouponMinimalAPI.Data;
 using MagicVilla_CouponMinimalAPI.Models;
 using MagicVilla_CouponMinimalAPI.Models.DTO;
@@ -9,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddAutoMapper(typeof(MappingConfig));
 
 var app = builder.Build();
 
@@ -54,7 +57,7 @@ app.MapGet("/api/coupon/{id:int}", (ILogger<Program> _logger, int id) =>
     .Produces(StatusCodes.Status400BadRequest)
     .Produces(StatusCodes.Status404NotFound);
 
-app.MapPost("/api/coupon", ([FromBody] CouponCreateDTO couponCreateDTO) =>
+app.MapPost("/api/coupon", (IMapper _mapper, [FromBody] CouponCreateDTO couponCreateDTO) =>
 {
     if (string.IsNullOrEmpty(couponCreateDTO.Name))
     {
@@ -71,14 +74,8 @@ app.MapPost("/api/coupon", ([FromBody] CouponCreateDTO couponCreateDTO) =>
         return Results.BadRequest("Coupon Name already exists");
     }
 
-    var coupon = new Coupon
-    {
-        Name = couponCreateDTO.Name,
-        Percent = couponCreateDTO.Percent,
-        IsActive = couponCreateDTO.IsActive,
-        Created = DateTime.Now,
-        LastUpdate = DateTime.Now
-    };
+    var coupon = _mapper.Map<Coupon>(couponCreateDTO);
+    coupon.Created = coupon.LastUpdate = DateTime.Now;
     if (CouponStore.couponList.Any())
     {
         coupon.Id = CouponStore.couponList.OrderByDescending(c => c.Id).FirstOrDefault().Id + 1;
@@ -89,16 +86,7 @@ app.MapPost("/api/coupon", ([FromBody] CouponCreateDTO couponCreateDTO) =>
     }
     CouponStore.couponList.Add(coupon);
 
-    var couponDTO = new CouponDTO
-    {
-        Id = coupon.Id,
-        Name = coupon.Name,
-        Percent = coupon.Percent,
-        IsActive = coupon.IsActive,
-        Created = coupon.Created
-    };
-
-
+    var couponDTO = _mapper.Map<CouponDTO>(coupon);
     return Results.CreatedAtRoute("GetCoupon", new { coupon.Id }, couponDTO);
 })
     .WithName("CreateCoupon")
