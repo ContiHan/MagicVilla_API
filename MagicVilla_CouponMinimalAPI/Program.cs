@@ -5,6 +5,7 @@ using MagicVilla_CouponMinimalAPI.Data;
 using MagicVilla_CouponMinimalAPI.Models;
 using MagicVilla_CouponMinimalAPI.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -98,28 +99,28 @@ app.MapPost("/api/coupon", async (IMapper _mapper, IValidator<CouponCreateDTO> _
     .Produces(StatusCodes.Status400BadRequest)
     .Produces(StatusCodes.Status404NotFound);
 
-app.MapPut("/api/coupon/{id:int}", (int id, [FromBody] Coupon coupon) =>
+app.MapPut("/api/coupon", async (IMapper _mapper, IValidator<CouponUpdateDTO> _validator, [FromBody] CouponUpdateDTO couponUpdateDTO) =>
 {
-    if (id != coupon.Id)
+    var validationResult = await _validator.ValidateAsync(couponUpdateDTO);
+    if (!validationResult.IsValid)
     {
-        return Results.BadRequest("Ids do not match");
+        return Results.BadRequest(validationResult.Errors.FirstOrDefault().ToString());
     }
 
-    var couponFromStore = CouponStore.couponList.FirstOrDefault(c => c.Id == id);
+    var couponFromStore = CouponStore.couponList.FirstOrDefault(c => c.Id == couponUpdateDTO.Id);
     if (couponFromStore is null)
     {
         return Results.NotFound("Coupon not exists");
     }
 
-    couponFromStore.Name = coupon.Name;
-    couponFromStore.Percent = coupon.Percent;
-    couponFromStore.IsActive = coupon.IsActive;
+    _mapper.Map(couponUpdateDTO, couponFromStore);
     couponFromStore.LastUpdate = DateTime.Now;
 
-    return Results.NoContent();
+    var couponDTO = _mapper.Map<CouponDTO>(couponFromStore);
+    return Results.Ok(couponDTO);
 })
     .WithName("UpdateCoupon")
-    .Produces(StatusCodes.Status204NoContent)
+    .Produces(StatusCodes.Status200OK)
     .Produces(StatusCodes.Status400BadRequest)
     .Produces(StatusCodes.Status404NotFound);
 
