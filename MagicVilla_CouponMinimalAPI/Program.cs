@@ -1,4 +1,5 @@
 using AutoMapper;
+using FluentValidation;
 using MagicVilla_CouponMinimalAPI;
 using MagicVilla_CouponMinimalAPI.Data;
 using MagicVilla_CouponMinimalAPI.Models;
@@ -12,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(MappingConfig));
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 var app = builder.Build();
 
@@ -57,11 +59,12 @@ app.MapGet("/api/coupon/{id:int}", (ILogger<Program> _logger, int id) =>
     .Produces(StatusCodes.Status400BadRequest)
     .Produces(StatusCodes.Status404NotFound);
 
-app.MapPost("/api/coupon", (IMapper _mapper, [FromBody] CouponCreateDTO couponCreateDTO) =>
+app.MapPost("/api/coupon", (IMapper _mapper, IValidator<CouponCreateDTO> _validator, [FromBody] CouponCreateDTO couponCreateDTO) =>
 {
-    if (string.IsNullOrEmpty(couponCreateDTO.Name))
+    var validationResult = _validator.Validate(couponCreateDTO);
+    if (!validationResult.IsValid)
     {
-        return Results.BadRequest("Invalid Coupon Name");
+        return Results.BadRequest(validationResult.Errors.FirstOrDefault().ToString());
     }
 
     if (CouponStore.couponList is null)
