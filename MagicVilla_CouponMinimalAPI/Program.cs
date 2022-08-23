@@ -59,9 +59,9 @@ app.MapGet("/api/coupon/{id:int}", (ILogger<Program> _logger, int id) =>
     .Produces(StatusCodes.Status400BadRequest)
     .Produces(StatusCodes.Status404NotFound);
 
-app.MapPost("/api/coupon", (IMapper _mapper, IValidator<CouponCreateDTO> _validator, [FromBody] CouponCreateDTO couponCreateDTO) =>
+app.MapPost("/api/coupon", async (IMapper _mapper, IValidator<CouponCreateDTO> _validator, [FromBody] CouponCreateDTO couponCreateDTO) =>
 {
-    var validationResult = _validator.Validate(couponCreateDTO);
+    var validationResult = await _validator.ValidateAsync(couponCreateDTO);
     if (!validationResult.IsValid)
     {
         return Results.BadRequest(validationResult.Errors.FirstOrDefault().ToString());
