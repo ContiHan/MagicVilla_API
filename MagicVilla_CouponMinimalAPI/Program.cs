@@ -31,7 +31,8 @@ app.MapGet("/api/coupons", (ILogger<Program> _logger) =>
     return CouponStore.couponList.Any() ? Results.Ok(CouponStore.couponList) : Results.NotFound("Empty coupon store");
 })
     .WithName("GetCoupons")
-    .Produces<IEnumerable<Coupon>>(StatusCodes.Status200OK);
+    .Produces<IEnumerable<Coupon>>(StatusCodes.Status200OK)
+    .Produces(StatusCodes.Status404NotFound);
 
 app.MapGet("/api/coupon/{id:int}", (ILogger<Program> _logger, int id) =>
 {
@@ -120,7 +121,8 @@ app.MapPut("/api/coupon", async (IMapper _mapper, IValidator<CouponUpdateDTO> _v
     return Results.Ok(couponDTO);
 })
     .WithName("UpdateCoupon")
-    .Produces(StatusCodes.Status200OK)
+    .Accepts<CouponUpdateDTO>("application/json")
+    .Produces<CouponDTO>(StatusCodes.Status200OK)
     .Produces(StatusCodes.Status400BadRequest)
     .Produces(StatusCodes.Status404NotFound);
 
